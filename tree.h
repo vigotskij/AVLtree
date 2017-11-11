@@ -5,6 +5,10 @@
 	#include "icontainer.h"
 #endif
 
+#ifndef ISTACK_H
+	#include "./deps/dstack.h"
+#endif
+
 #define NULL 0
 #define nullptr 0
 
@@ -30,6 +34,8 @@ class Tree: public IContainer<ItemType> {
 		Node *root ;
 		Size itemCount ;
 
+		IStack<ItemType> *helper ;
+
 		// helpers
 		Node* emptyNodeFor( ItemType value ){
 			Node *tr = nullptr ;
@@ -50,6 +56,19 @@ class Tree: public IContainer<ItemType> {
 			}
 			return tr ;
 		}
+		Node* nodeContaining( ItemType value ){
+			Node *tr = nullptr ;
+			if( root != nullptr ){
+				Node *current = root ;
+				for( ; current != nullptr && current->value != value ; ){
+					if( current->value < value ) current = current->right ;
+					if( current->value > value ) current = current->left ;
+				}
+				if( current != nullptr ) tr = current ;
+			}
+			return tr ;
+		}
+		void toStack( Node *node , IStack<ItemType> *stack = helper ) ;
 
 		// copyconstructor and operator=
 		Tree( const Tree &otherTree ) ;
@@ -72,6 +91,10 @@ class Tree: public IContainer<ItemType> {
 //
 // PRIVATE
 //
+template<class ItemType>
+void Tree<ItemType>::toStack( Node *node, IStack<ItemType> *stack ){
+	;
+}
 
 //
 //  PUBLIC
@@ -80,11 +103,14 @@ class Tree: public IContainer<ItemType> {
 template<class ItemType>
 Tree<ItemType>::Tree( void ){
 	root = nullptr ;
+	helper = factoryStack<ItemType>() ;
 	itemCount = 0 ;
 }
 template<class ItemType>
 Tree<ItemType>::~Tree( void ){
 	clear() ;
+	for( ; !helper->isEmpty() ; helper->pop() );
+	if( helper ) delete helper ;
 	if( root ) delete root ;
 }
 // adding and removing functions
@@ -105,6 +131,7 @@ void Tree<ItemType>::append( ItemType value ){
 			right->value = value ;
 			right->right = nullptr ;
 			right->left = nullptr ;
+			right->root = current ;
 
 			itemCount++ ;
 		} else if( current->value > value ) {
@@ -113,6 +140,7 @@ void Tree<ItemType>::append( ItemType value ){
 			left->value = value ;
 			left->right = nullptr ;
 			left->left = nullptr ;
+			left->root = current ;
 
 			itemCount++ ;
 		}
@@ -121,16 +149,71 @@ void Tree<ItemType>::append( ItemType value ){
 
 template<class ItemType>
 ItemType Tree<ItemType>::remove( ItemType value ){
-	;
+	ItemType tr = NULL ;
+	if( search( value ) ){
+		Node *toRemove = nodeContaining( value ) ;
+		if( toRemove != root ) {
+			if( toRemove->left != nullptr && toRemove->right != nullptr ){
+				for(; !helper->isEmpty() ; helper->pop() ) ;
+				toStack( toRemove->left ) ;
+				toStack( toRemove->right ) ;
+				for( ; !helper->isEmpty() ; ) {
+					append( helper->pop() ) ;
+				}
+			} else if( toRemove->left != nullptr && toRemove->right == nullptr ){
+				Node *father = toRemove->root ;
+				father->left = toRemove->left ;
+				toRemove->left->root = father ;
+			} else if( toRemove->right != nullptr && toRemove->left == nullptr ){
+				Node *father = toRemove->root ;
+				father->right = toRemove->right ;
+				toRemove->right->root = father ;
+			} else if( toRemove->left == nullptr && toRemove->right == nullptr ){
+				;
+			}
+		} else if( toRemove == root ){
+			if( toRemove->left != nullptr && toRemove->right != nullptr ){
+				for( ; helper->isEmpty() ; helper->pop() ) ;
+				toStack( toRemove->left ) ;
+				toStack( toRemove->right ) ;
+				for( ; !helper->isEmpty() ; ){
+					append( helper->pop() ) ;
+				}
+			} else if( toRemove->left != nullptr && toRemove->right == nullptr ){
+				Node *oldRoot = root ;
+				root = oldRoot->left ;
+				root->root = nullptr ;
+			} else if( toRemove->left == nullptr && toRemove->right != nullptr ){
+				Node *oldRoot = root ;
+				root = oldRoot->right ;
+				root->root = nullptr ;
+			} else if( toRemove->left == nullptr && toRemove->right == nullptr ){
+				root = nullptr ;
+			}
+		}
+		tr = toRemove->value ;
+		delete toRemove ;
+		itemCount-- ;
+	}
+	return tr ;
 }
 // info functions
 template<class ItemType>
 bool Tree<ItemType>::search( ItemType value ){
-	;
+	bool tr = false ;
+	if( root != nullptr ){
+		Node *current = root ;
+		for( ; current != nullptr && current->value != value ; ){
+			if( current->value < value ) current = current->right ;
+			if( current->value > value ) current = current->left ;
+		}
+		if ( current != nullptr ) tr = ( current->value == value ) ;
+	}
+    return tr ;
 }
 template<class ItemType>
 Size Tree<ItemType>::size( void ){
-	;
+	return itemCount ;
 }
 template<class ItemType>
 bool Tree<ItemType>::isEmpty( void ){
