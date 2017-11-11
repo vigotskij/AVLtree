@@ -28,7 +28,30 @@ class Tree: public IContainer<ItemType> {
 		};
 
 		Node *root ;
+		Size itemCount ;
 
+		// helpers
+		Node* emptyNodeFor( ItemType value ){
+			Node *tr = nullptr ;
+			if ( root != nullptr ){
+				Node *current = root ;
+				for ( ; current != nullptr ; ) {
+					if ( current->value < value && current->right == nullptr ){
+						tr = current ;
+					} else if( current->value && current->left == nullptr ){
+						tr = current ;
+					}
+					if ( current->value < value ){
+						current = current->right ;
+					} else if ( current->value > value ){
+						current = current->left ;
+					}
+				}
+			}
+			return tr ;
+		}
+
+		// copyconstructor and operator=
 		Tree( const Tree &otherTree ) ;
 		Tree operator= ( const Tree &otherTree ) ;
 	public:
@@ -57,6 +80,7 @@ class Tree: public IContainer<ItemType> {
 template<class ItemType>
 Tree<ItemType>::Tree( void ){
 	root = nullptr ;
+	itemCount = 0 ;
 }
 template<class ItemType>
 Tree<ItemType>::~Tree( void ){
@@ -66,8 +90,35 @@ Tree<ItemType>::~Tree( void ){
 // adding and removing functions
 template<class ItemType>
 void Tree<ItemType>::append( ItemType value ){
-	;
+	if( root == nullptr ){
+		root->value = value ;
+		root->left = nullptr ;
+		root->right = nullptr ;
+		root->root = nullptr ;
+
+		itemCount++ ;
+	} else {
+		Node *current = emptyNodeFor( value ) ;
+		if( current->value < value ){
+			right = current->right ;
+
+			right->value = value ;
+			right->right = nullptr ;
+			right->left = nullptr ;
+
+			itemCount++ ;
+		} else if( current->value > value ) {
+			left = current->left ;
+
+			left->value = value ;
+			left->right = nullptr ;
+			left->left = nullptr ;
+
+			itemCount++ ;
+		}
+	}
 }
+
 template<class ItemType>
 ItemType Tree<ItemType>::remove( ItemType value ){
 	;
@@ -82,10 +133,11 @@ Size Tree<ItemType>::size( void ){
 	;
 }
 template<class ItemType>
-bool Tree<Itemtype>::isEmpty( void ){
+bool Tree<ItemType>::isEmpty( void ){
 	return root == nullptr ;
 }
 // clean everything
+template<class ItemType>
 void Tree<ItemType>::clear( void ){
 }
 
