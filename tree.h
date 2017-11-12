@@ -34,7 +34,7 @@ class Tree: public IContainer<ItemType> {
 		Node *root ;
 		Size itemCount ;
 
-		IStack<ItemType> *helper ;
+		// IStack<ItemType> *helper ;
 
 		// helpers
 		Node* emptyNodeFor( ItemType value ){
@@ -44,8 +44,10 @@ class Tree: public IContainer<ItemType> {
 				for ( ; current != nullptr ; ) {
 					if ( current->value < value && current->right == nullptr ){
 						tr = current ;
-					} else if( current->value && current->left == nullptr ){
+						break ;
+					} else if( current->value > value && current->left == nullptr ){
 						tr = current ;
+						break ;
 					}
 					if ( current->value < value ){
 						current = current->right ;
@@ -68,7 +70,7 @@ class Tree: public IContainer<ItemType> {
 			}
 			return tr ;
 		}
-		void toStack( Node *node , IStack<ItemType> *stack = helper ) ;
+		// void toStack( Node *node , IStack<ItemType> *stack = helper ) ;
 
 		// copyconstructor and operator=
 		Tree( const Tree &otherTree ) ;
@@ -91,10 +93,11 @@ class Tree: public IContainer<ItemType> {
 //
 // PRIVATE
 //
+/*
 template<class ItemType>
 void Tree<ItemType>::toStack( Node *node, IStack<ItemType> *stack ){
 	;
-}
+} */
 
 //
 //  PUBLIC
@@ -110,7 +113,7 @@ template<class ItemType>
 Tree<ItemType>::~Tree( void ){
 	clear() ;
 	for( ; !helper->isEmpty() ; helper->pop() );
-	if( helper ) delete helper ;
+	// if( helper ) delete helper ;
 	if( root ) delete root ;
 }
 // adding and removing functions
@@ -154,12 +157,22 @@ ItemType Tree<ItemType>::remove( ItemType value ){
 		Node *toRemove = nodeContaining( value ) ;
 		if( toRemove != root ) {
 			if( toRemove->left != nullptr && toRemove->right != nullptr ){
-				for(; !helper->isEmpty() ; helper->pop() ) ;
-				toStack( toRemove->left ) ;
-				toStack( toRemove->right ) ;
-				for( ; !helper->isEmpty() ; ) {
-					append( helper->pop() ) ;
+				Node *father = toRemove->root ;
+				Node *left = toRemove->left ;
+				Node *right = toRemove->right ;
+
+				if( right->value > father->value){
+					father->right = right ;
+					Node *temp = emptyNodeFor( left->value ) ;
+					temp->left = left ;
+					left->root = temp ;
+				} else if( left->value < father->value ){
+					father->left = left ;
+					Node *temp = emptyNodeFor( right->value ) ;
+					temp->right = right ;
+                    right->root = temp ;
 				}
+
 			} else if( toRemove->left != nullptr && toRemove->right == nullptr ){
 				Node *father = toRemove->root ;
 				father->left = toRemove->left ;
@@ -173,12 +186,11 @@ ItemType Tree<ItemType>::remove( ItemType value ){
 			}
 		} else if( toRemove == root ){
 			if( toRemove->left != nullptr && toRemove->right != nullptr ){
-				for( ; helper->isEmpty() ; helper->pop() ) ;
-				toStack( toRemove->left ) ;
-				toStack( toRemove->right ) ;
-				for( ; !helper->isEmpty() ; ){
-					append( helper->pop() ) ;
-				}
+				root = toRemove->right ;
+				root->root = nullptr ;
+				Node *temp = emptyNodeFor( toRemove->left ) ;
+				temp->left = left ;
+				left->root = temp ;
 			} else if( toRemove->left != nullptr && toRemove->right == nullptr ){
 				Node *oldRoot = root ;
 				root = oldRoot->left ;
