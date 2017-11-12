@@ -5,10 +5,6 @@
 	#include "icontainer.h"
 #endif
 
-#ifndef ISTACK_H
-	#include "./deps/dstack.h"
-#endif
-
 #define NULL 0
 #define nullptr 0
 
@@ -33,8 +29,6 @@ class Tree: public IContainer<ItemType> {
 
 		Node *root ;
 		Size itemCount ;
-
-		// IStack<ItemType> *helper ;
 
 		// helpers
 		Node* emptyNodeFor( ItemType value ){
@@ -70,7 +64,20 @@ class Tree: public IContainer<ItemType> {
 			}
 			return tr ;
 		}
-		// void toStack( Node *node , IStack<ItemType> *stack = helper ) ;
+		void clearFrom( Node *node ){
+			if( node->left != nullptr ) cleanFrom( node->left ) ;
+			if( node->right != nullptr ) cleanFrom( node->right ) ;
+			if( node->root == nullptr ) delete node ;
+			if( node->root != nullptr ) {
+				if( node->root->value < node->value ){
+					node->root->right = nullptr ;
+					delete node ;
+				} else if( node->root->value > node->value ){
+					node->root->left = nullptr ;
+					delete node ;
+				}
+			}
+		}
 
 		// copyconstructor and operator=
 		Tree( const Tree &otherTree ) ;
@@ -93,11 +100,6 @@ class Tree: public IContainer<ItemType> {
 //
 // PRIVATE
 //
-/*
-template<class ItemType>
-void Tree<ItemType>::toStack( Node *node, IStack<ItemType> *stack ){
-	;
-} */
 
 //
 //  PUBLIC
@@ -234,6 +236,7 @@ bool Tree<ItemType>::isEmpty( void ){
 // clean everything
 template<class ItemType>
 void Tree<ItemType>::clear( void ){
+    clearFrom( root ) ;
 }
 
 
