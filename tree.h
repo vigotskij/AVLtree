@@ -129,6 +129,7 @@ void Tree<ItemType>::append( ItemType value ){
 	} else {
 		Node *current = emptyNodeFor( value ) ;
 		if( current->value < value ){
+            current->right = new Node ;
 			Node *right = current->right ;
 
 			right->value = value ;
@@ -138,6 +139,7 @@ void Tree<ItemType>::append( ItemType value ){
 
 			itemCount++ ;
 		} else if( current->value > value ) {
+            current->left = new Node ;
 			Node *left = current->left ;
 
 			left->value = value ;
