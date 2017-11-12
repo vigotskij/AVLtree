@@ -64,7 +64,7 @@ class Tree: public IContainer<ItemType> {
 			}
 			return tr ;
 		}
-		void clearFrom( Node *node ){
+		void cleanFrom( Node *node ){
 			if( node->left != nullptr ) cleanFrom( node->left ) ;
 			if( node->right != nullptr ) cleanFrom( node->right ) ;
 			if( node->root == nullptr ) delete node ;
@@ -108,20 +108,18 @@ class Tree: public IContainer<ItemType> {
 template<class ItemType>
 Tree<ItemType>::Tree( void ){
 	root = nullptr ;
-	helper = factoryStack<ItemType>() ;
 	itemCount = 0 ;
 }
 template<class ItemType>
 Tree<ItemType>::~Tree( void ){
 	clear() ;
-	for( ; !helper->isEmpty() ; helper->pop() );
-	// if( helper ) delete helper ;
 	if( root ) delete root ;
 }
 // adding and removing functions
 template<class ItemType>
 void Tree<ItemType>::append( ItemType value ){
 	if( root == nullptr ){
+        root = new Node ;
 		root->value = value ;
 		root->left = nullptr ;
 		root->right = nullptr ;
@@ -131,7 +129,7 @@ void Tree<ItemType>::append( ItemType value ){
 	} else {
 		Node *current = emptyNodeFor( value ) ;
 		if( current->value < value ){
-			right = current->right ;
+			Node *right = current->right ;
 
 			right->value = value ;
 			right->right = nullptr ;
@@ -140,7 +138,7 @@ void Tree<ItemType>::append( ItemType value ){
 
 			itemCount++ ;
 		} else if( current->value > value ) {
-			left = current->left ;
+			Node *left = current->left ;
 
 			left->value = value ;
 			left->right = nullptr ;
@@ -172,7 +170,7 @@ ItemType Tree<ItemType>::remove( ItemType value ){
 					father->left = left ;
 					Node *temp = emptyNodeFor( right->value ) ;
 					temp->right = right ;
-                    right->root = temp ;
+					right->root = temp ;
 				}
 
 			} else if( toRemove->left != nullptr && toRemove->right == nullptr ){
@@ -190,9 +188,9 @@ ItemType Tree<ItemType>::remove( ItemType value ){
 			if( toRemove->left != nullptr && toRemove->right != nullptr ){
 				root = toRemove->right ;
 				root->root = nullptr ;
-				Node *temp = emptyNodeFor( toRemove->left ) ;
-				temp->left = left ;
-				left->root = temp ;
+				Node *temp = emptyNodeFor( toRemove->left->value ) ;
+				temp->left = toRemove->left ;
+				toRemove->left->root = temp ;
 			} else if( toRemove->left != nullptr && toRemove->right == nullptr ){
 				Node *oldRoot = root ;
 				root = oldRoot->left ;
@@ -236,7 +234,7 @@ bool Tree<ItemType>::isEmpty( void ){
 // clean everything
 template<class ItemType>
 void Tree<ItemType>::clear( void ){
-    clearFrom( root ) ;
+    cleanFrom( root ) ;
 }
 
 
